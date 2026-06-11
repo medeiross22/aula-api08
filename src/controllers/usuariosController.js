@@ -1,4 +1,5 @@
 const pool = require('../database/conexao'); // Ajuste o caminho se necessário
+const bcrypt = require('bcrypt');
 
 const listarUsuarios = async (req, res) => {
     try {
@@ -58,15 +59,18 @@ const buscarPorId = async (req, res) => {
 
 const criarUsuario = async (req, res) => {
     try {
-        const { nome, email } = req.body;
+        const { nome, email, senha } = req.body;
 
-        if (!nome || !email) {
+        if (!nome || !email || !senha) {
             return res.status(400).json({ mensagem: 'Nome e email são obrigatórios' });
         }
 
+        const senhaCriptografada = await bcrypt.hash(senha, 10);
+        console.log(senhaCriptografada);
+
         const [resultado] = await pool.query(
-            'INSERT INTO usuarios (nome, email) VALUES (?, ?)',
-            [nome, email]
+            'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
+            [nome, email, senhaCriptografada]
         );
 
         res.status(201).json({
